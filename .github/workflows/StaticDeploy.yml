@@ -36,12 +36,16 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm install
 
       - name: Build project
         run: npm run build
+
+      - name: Verify dist folder
+        run: ls -la dist/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
