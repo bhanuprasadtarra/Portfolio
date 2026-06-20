@@ -23,6 +23,10 @@ pipeline {
                 bat 'npm run build'
             }
         }
+
+        stage('Archive Build') {
+            archiveAtrifaacts artifacts: 'build/**', fingerprint: true
+        }
     }
 
     post {
