@@ -701,9 +701,11 @@ export default function App() {
                       <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
                         isActive 
                           ? 'bg-indigo-600 text-white ring-4 ring-indigo-500/30 shadow' 
-                          : 'bg-slate-800 text-slate-400'
+                          : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
                       }`}>
-                        {node.icon}
+                        {React.cloneElement(node.icon as React.ReactElement<any>, {
+                          className: `w-5 h-5 ${isActive ? 'text-white' : 'text-indigo-400'}`
+                        })}
                       </div>
                       <span className="text-[10px] font-mono mt-2 font-bold tracking-tight text-center">{node.label}</span>
                       <span className="text-[8px] text-slate-500 tracking-wider text-center">{node.role}</span>

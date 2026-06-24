@@ -9,13 +9,32 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
+variables:
+  # The output directory of the vite build
+  buildOutputDirectory: 'dist'
+
 steps:
 - task: NodeTool@0
   inputs:
     versionSpec: '20.x'
   displayName: 'Install Node.js'
 
+- task: Cache@2
+  inputs:
+    key: 'npm | "$(Agent.OS)" | package-lock.json'
+    path: '$(npm_config_cache)'
+    restoreKeys: |
+       npm | "$(Agent.OS)"
+  displayName: 'Cache npm packages'
+
 - script: |
-    npm install
+    npm ci
     npm run build
-  displayName: 'npm install and build'
+  displayName: 'npm ci and build'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(buildOutputDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+  displayName: 'Publish build artifacts'
