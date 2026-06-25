@@ -13,6 +13,7 @@ pool:
 variables:
   # The output directory of the vite build
   buildOutputDirectory: 'dist'
+  npm_config_cache: '$(Pipeline.Workspace)/.npm'
 
 steps:
 - task: NodeTool@0
@@ -39,3 +40,11 @@ steps:
     ArtifactName: 'drop'
     publishLocation: 'Container'
   displayName: 'Publish build artifacts'
+
+- task: AzureWebApp@1
+  displayName: 'Deploy to Azure App Service'
+  inputs:
+    azureSubscription: 'Azure-ServiceConnection'
+    appType: 'webAppLinux'      # Use 'webApp' if it's a Windows App Service
+    appName: 'BhWebApp1'         
+    package: '$(buildOutputDirectory)'
