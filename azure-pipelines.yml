@@ -11,40 +11,55 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  # The output directory of the vite build
+    # The output directory of the vite build
   buildOutputDirectory: 'dist'
   npm_config_cache: '$(Pipeline.Workspace)/.npm'
 
 steps:
+# Install Node.js
 - task: NodeTool@0
+  displayName: 'Install Node.js'
   inputs:
     versionSpec: '20.x'
-  displayName: 'Install Node.js'
 
+# Cache npm packages
 - task: Cache@2
+  displayName: 'Cache npm packages'
   inputs:
     key: 'npm | "$(Agent.OS)" | package-lock.json'
-    path: '$(npm_config_cache)'
     restoreKeys: |
-       npm | "$(Agent.OS)"
-  displayName: 'Cache npm packages'
+      npm | "$(Agent.OS)"
+    path: '$(npm_config_cache)'
 
+# Install dependencies and build
 - script: |
     npm ci
     npm run build
-  displayName: 'npm ci and build'
+  displayName: 'Install dependencies and build'
 
-- task: PublishBuildArtifacts@1
+# Archive the dist folder
+- task: ArchiveFiles@2
+  displayName: 'Archive build output'
   inputs:
-    PathtoPublish: '$(buildOutputDirectory)'
+    rootFolderOrFile: '$(buildOutputDirectory)'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
+    replaceExistingArchive: true
+
+# Publish artifact
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish build artifact'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/app.zip'
     ArtifactName: 'drop'
     publishLocation: 'Container'
-  displayName: 'Publish build artifacts'
 
+# Deploy to Azure App Service
 - task: AzureWebApp@1
   displayName: 'Deploy to Azure App Service'
   inputs:
     azureSubscription: 'Azure-ServiceConnection'
-    appType: 'webAppLinux'      # Use 'webApp' if it's a Windows App Service
-    appName: 'BhWebApp1'         
-    package: '$(buildOutputDirectory)'
+    appType: 'webAppLinux' # Use 'webApp' if it's a Windows App Service
+    appName: 'BhWebApp1'
+    package: '$(Build.ArtifactStagingDirectory)/app.zip'
