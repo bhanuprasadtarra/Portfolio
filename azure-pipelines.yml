@@ -63,3 +63,4 @@ steps:
     appType: 'webAppLinux' # Use 'webApp' if it's a Windows App Service
     appName: 'BhWebApp1'
     package: '$(Build.ArtifactStagingDirectory)/app.zip'
+    startUpCommand: 'pm2 serve /home/site/wwwroot --no-daemon --spa'
