@@ -1,0 +1,66 @@
+# Node.js with React
+# Build a Node.js project that uses React.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+- main
+- azure-pipelines
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+    # The output directory of the vite build
+  buildOutputDirectory: 'dist'
+  npm_config_cache: '$(Pipeline.Workspace)/.npm'
+
+steps:
+# Install Node.js
+- task: NodeTool@0
+  displayName: 'Install Node.js'
+  inputs:
+    versionSpec: '20.x'
+
+# Cache npm packages
+- task: Cache@2
+  displayName: 'Cache npm packages'
+  inputs:
+    key: 'npm | "$(Agent.OS)" | package-lock.json'
+    restoreKeys: |
+      npm | "$(Agent.OS)"
+    path: '$(npm_config_cache)'
+
+# Install dependencies and build
+- script: |
+    npm ci
+    npm run build
+  displayName: 'Install dependencies and build'
+
+# Archive the dist folder
+- task: ArchiveFiles@2
+  displayName: 'Archive build output'
+  inputs:
+    rootFolderOrFile: '$(buildOutputDirectory)'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
+    replaceExistingArchive: true
+
+# Publish artifact
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish build artifact'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/app.zip'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+
+# Deploy to Azure App Service
+- task: AzureWebApp@1
+  displayName: 'Deploy to Azure App Service'
+  inputs:
+    azureSubscription: 'Azure-ServiceConnection'
+    appType: 'webAppLinux' # Use 'webApp' if it's a Windows App Service
+    appName: 'BhWebApp1'
+    package: '$(Build.ArtifactStagingDirectory)/app.zip'
+    startUpCommand: 'pm2 serve /home/site/wwwroot --no-daemon --spa'
