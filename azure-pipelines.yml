@@ -6,7 +6,7 @@ pool:
 
 variables:
   imageRepository: react-portfolio-img
-  containerRegistry: ACR-ServiceConnection
+  containerRegistry: AcrPortfolioConn
   tag: $(Build.BuildId)
 
 steps:
